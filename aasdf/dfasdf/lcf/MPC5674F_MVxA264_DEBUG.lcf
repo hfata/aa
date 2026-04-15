@@ -1,0 +1,78 @@
+/* lcf file for MPC5674F (debug RAM version)            */
+
+
+
+/*          4MB Flash , 256KB SRAM                      */
+
+
+MEMORY
+{
+    pseudo_rom:         org = 0x40008000,   len = 0x00020000
+    init:               org = 0x40028000,   len = 0x00001000
+    exception_handlers: org = 0x40029000,   len = 0x00001000
+    internal_ram:       org = 0x4002A000,   len = 0x00014000
+    heap  :             org = 0x4003E000,   len = 0x00001000 /* Heap start location */
+    stack :             org = 0x4003F000,   len = 0x00001000 /* Start location for Stack */
+}
+
+SECTIONS
+{
+    GROUP : {
+      .init : {}
+      .init_vle (VLECODE) : {
+        *(.init)
+        *(.init_vle)
+      }
+    } > init
+
+    .__exception_handlers (VLECODE): {} > exception_handlers
+
+    GROUP : {
+        .text (TEXT) ALIGN(0x10) : {}
+        .text_vle (VLECODE) ALIGN(0x10): {
+             *(.text)
+             *(.text_vle)
+         }
+        .rodata (CONST) : {
+            *(.rdata)
+            *(.rodata)
+        }
+        .ctors : {}
+        .dtors : {}
+        extab : {}
+        extabindex : {}
+    } > pseudo_rom
+
+    GROUP : {    
+       .__uninitialized_intc_handlertable ALIGN(0x10) : {}
+       .data   : {}
+       .sdata  : {}
+       .sbss   : {}
+       .sdata2 : {}
+       .sbss2  : {}
+       .ram_code (VLECODE) ALIGN(0x10) : {
+           *(.ram_code)
+           *(.ram_code.*)
+       }
+       .recovery_state ALIGN(0x10) : {
+           *(.recovery_state)
+           *(.recovery_state.*)
+       }
+       .bss    : {}
+    } > internal_ram
+}
+
+__ram_code_start = ADDR(.ram_code);
+__ram_code_end   = ADDR(.ram_code) + SIZEOF(.ram_code);
+__ram_code_load  = ROMADDR(.ram_code);
+
+/* Freescale CodeWarrior compiler address designations */
+
+_stack_addr = ADDR(stack)+SIZEOF(stack);
+_stack_end  = ADDR(stack);
+_heap_addr  = ADDR(heap);
+_heap_end   = ADDR(heap)+SIZEOF(heap);
+
+/* Exceptions Handlers Location (used in Exceptions.c for IVPR initialization) */
+
+EXCEPTION_HANDLERS = ADDR(exception_handlers);

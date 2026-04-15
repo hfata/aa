@@ -1,0 +1,58 @@
+;this demonstration script sets up MMU and internal SRAM
+;runs on MPC5674
+;internal SRAM is used for program and data
+
+&path=OS.PPD()
+
+SYStem.RESet
+
+SYStem.CPU MPC5674
+SYStem.BdmClock 4.MHz
+
+if POWERNEXUS()
+(
+  Trace.Method Analyzer
+  Trace.Init
+  ;set port mode to MDO16
+  SYStem.Option.NEXUS MDO16
+)
+else if SIMULATOR()
+(
+  Trace.Method Analyzer
+  Trace.Init
+)
+else
+(
+  Trace.Method Onchip
+  Trace.Init
+)
+
+if !SIMULATOR()
+(
+  ;enable real time memory access via NEXUS block
+  SYStem.MemAccess NEXUS
+)
+
+;Enabling Debug of a Censored Device
+SYStem.option.keycode 0xFEEDFACECAFEBEEF
+
+;connect and reset processor
+SYStem.UP
+
+;set up MMU TLBs
+DO "&path/MPC5674F_mmu_init.cmm"
+
+;initialize internal SRAM
+DO "&path/MPC5674F_sram_init.cmm"
+
+Data.LOAD.ELF "../bin/RAM.elf"
+
+;execute until function main
+GO main
+WAIT !RUN()
+
+;set debug mode to HLL debugging
+DATA.LIST
+MODE.HLL
+
+ENDDO

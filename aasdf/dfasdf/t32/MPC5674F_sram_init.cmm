@@ -1,0 +1,4 @@
+; This file initializes all of the SRAM ECC values.
+; MPC5674: 256KB SRAM
+
+Data.Set EA:0x40000000--0x4003FFFF %QUAD 0xaaaa555588887777
